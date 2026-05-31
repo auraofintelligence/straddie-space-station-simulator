@@ -12,6 +12,7 @@ import {
   getRailNetwork,
   importJson,
   isModuleRailConnected,
+  isInsideBuildableFootprint,
   placeModule,
   removeModule,
   resolveModuleType,
@@ -178,6 +179,7 @@ function renderGrid() {
 
   grid.style.setProperty("--cols", dims.cols);
   grid.style.setProperty("--rows", dims.rows);
+  grid.style.setProperty("--plan-ratio", `${dims.widthM} / ${dims.depthM}`);
   grid.innerHTML = "";
 
   for (let y = 0; y < dims.rows; y += 1) {
@@ -187,6 +189,7 @@ function renderGrid() {
       cell.className = "grid-cell";
       cell.dataset.x = String(x);
       cell.dataset.y = String(y);
+      cell.dataset.footprint = String(isInsideBuildableFootprint({ x, y }, dims));
       const key = `${x},${y}`;
       if (network.railCells.has(key)) cell.dataset.rail = "true";
       if (network.connected.has(key)) cell.dataset.railConnected = "true";
@@ -194,6 +197,28 @@ function renderGrid() {
       grid.appendChild(cell);
     }
   }
+
+  const footprint = document.createElement("div");
+  footprint.className = "footprint-overlay";
+  footprint.style.gridColumn = `${dims.footprintOffsetX + 1} / span ${dims.footprintCols}`;
+  footprint.style.gridRow = `${dims.footprintOffsetY + 1} / span ${dims.footprintRows}`;
+  footprint.innerHTML = `<span>Buildable footprint ${state.scenario.footprintPct}% - ${dims.footprintWidthM}m x ${dims.footprintDepthM}m</span>`;
+  grid.appendChild(footprint);
+
+  const lotLabel = document.createElement("div");
+  lotLabel.className = "lot-label";
+  lotLabel.textContent = `Lot target ${state.scenario.siteArea}m2 - ${dims.nominalWidthM}m x ${dims.nominalDepthM}m`;
+  grid.appendChild(lotLabel);
+
+  const edgeLabel = document.createElement("div");
+  edgeLabel.className = "street-edge-label";
+  edgeLabel.textContent = "Street-edge robotic loading";
+  grid.appendChild(edgeLabel);
+
+  const scale = document.createElement("div");
+  scale.className = "scale-bar";
+  scale.innerHTML = "<span></span><em>5m</em>";
+  grid.appendChild(scale);
 
   floor.modules.forEach((module) => {
     const type = resolveModuleType(state, module.typeId);
@@ -204,11 +229,14 @@ function renderGrid() {
     node.dataset.railProblem = String(type.railRequired && !isModuleRailConnected(state, floor, module, dims));
     node.style.gridColumn = `${module.x + 1} / span ${module.width}`;
     node.style.gridRow = `${module.y + 1} / span ${module.height}`;
-    node.innerHTML = `
-      <span>${type.icon}</span>
-      <strong>${type.short}</strong>
-      <em>${module.widthM || (module.width * GRID_SIZE_M).toFixed(1)} x ${module.depthM || (module.height * GRID_SIZE_M).toFixed(1)}m</em>
-    `;
+    node.title = `${type.name}: ${module.widthM || (module.width * GRID_SIZE_M).toFixed(1)}m x ${module.depthM || (module.height * GRID_SIZE_M).toFixed(1)}m`;
+    node.innerHTML = type.isRail
+      ? `<span class="rail-mark">${type.railSwitch ? "X" : ""}</span>`
+      : `
+        <span>${type.icon}</span>
+        <strong>${type.short}</strong>
+        <em>${module.widthM || (module.width * GRID_SIZE_M).toFixed(1)} x ${module.depthM || (module.height * GRID_SIZE_M).toFixed(1)}m</em>
+      `;
     node.addEventListener("click", (event) => {
       event.stopPropagation();
       state.selectedModuleId = module.id;
@@ -219,7 +247,17 @@ function renderGrid() {
   });
 
   const label = qs("[data-grid-label]");
-  if (label) label.textContent = `${dims.cols} x ${dims.rows} cells - ${dims.widthM.toFixed(1)}m x ${dims.depthM.toFixed(1)}m`;
+  if (label) label.textContent = `lot target ${state.scenario.siteArea}m2 (${dims.nominalWidthM.toFixed(1)}m x ${dims.nominalDepthM.toFixed(1)}m) / footprint ${dims.footprintArea.toFixed(1)}m2`;
+  const stats = qs("[data-plan-stats]");
+  if (stats) {
+    stats.innerHTML = `
+      <span>Lot target ${state.scenario.siteArea}m2</span>
+      <span>Shape ${dims.lotArea.toFixed(1)}m2</span>
+      <span>Footprint ${dims.footprintArea.toFixed(1)}m2</span>
+      <span>Grid ${dims.cols} x ${dims.rows}</span>
+      <span>${GRID_SIZE_M}m cells</span>
+    `;
+  }
   const activeLabel = qs("[data-active-floor-label]");
   if (activeLabel) activeLabel.textContent = floor?.name || "Floor";
   const height = qs("[data-total-height]");
@@ -329,7 +367,7 @@ function syncControls() {
 
 function bindControls() {
   qsa("[data-setting]").forEach((control) => {
-    control.addEventListener("change", () => {
+    const applyControl = () => {
       const key = control.dataset.setting;
       let value = control.type === "checkbox" ? control.checked : control.value;
       if (control.type === "number" || control.tagName === "SELECT") value = Number(value);
@@ -339,7 +377,9 @@ function bindControls() {
         state.scenario[key] = value;
       }
       render();
-    });
+    };
+    control.addEventListener("change", applyControl);
+    if (control.tagName !== "SELECT" && control.type !== "checkbox") control.addEventListener("input", applyControl);
   });
 
   const filter = qs("[data-module-filter]");

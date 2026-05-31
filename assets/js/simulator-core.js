@@ -7,7 +7,7 @@ export const DEFAULT_SCENARIO = {
   loadingEdge: "street-edge",
   frontageM: 25.7,
   depthM: 16.5,
-  useCustomDimensions: false,
+  useCustomDimensions: true,
   footprintPct: 75,
   floors: 4,
   heightCap: 14,
@@ -162,6 +162,7 @@ export const BASE_MODULE_TYPES = [
     category: "Core",
     service: "egress",
     railRequired: false,
+    outsideFootprintAllowed: true,
     draftWidthM: 2.4,
     draftDepthM: 3,
     sizingBasis: "Draft egress placeholder only. Real stair dimensions require NCC/fire-engineering design.",
@@ -195,6 +196,7 @@ export const BASE_MODULE_TYPES = [
     service: "loading",
     railRequired: false,
     railSource: true,
+    outsideFootprintAllowed: true,
     draftWidthM: 3.6,
     draftDepthM: 2.4,
     sizingBasis: "Draft street-edge robotic loading/service bay. Public wording avoids exact address naming.",
@@ -336,25 +338,70 @@ export function updateModuleSizing(state, typeId, patch) {
   return next;
 }
 
+export function getLotArea(scenario) {
+  const customArea = Number(scenario.frontageM) * Number(scenario.depthM);
+  return scenario.useCustomDimensions && customArea > 0 ? customArea : Number(scenario.siteArea);
+}
+
 export function getFootprintArea(scenario) {
-  return scenario.siteArea * (scenario.footprintPct / 100);
+  return getLotArea(scenario) * (scenario.footprintPct / 100);
 }
 
 export function getGridDimensions(scenario) {
-  const area = getFootprintArea(scenario);
   const customArea = Number(scenario.frontageM) * Number(scenario.depthM);
   const useCustom = scenario.useCustomDimensions && customArea > 0;
-  const scale = useCustom ? Math.sqrt(area / customArea) : 1;
   const assumedRatio = 1.55;
-  const widthM = useCustom ? Number(scenario.frontageM) * scale : Math.sqrt(area * assumedRatio);
-  const depthM = useCustom ? Number(scenario.depthM) * scale : area / widthM;
+  const lotArea = getLotArea(scenario);
+  const widthM = useCustom ? Number(scenario.frontageM) : Math.sqrt(lotArea * assumedRatio);
+  const depthM = useCustom ? Number(scenario.depthM) : lotArea / widthM;
+  const cols = Math.max(12, Math.round(widthM / GRID_SIZE_M));
+  const rows = Math.max(10, Math.round(depthM / GRID_SIZE_M));
+  const footprintScale = Math.sqrt(clamp(Number(scenario.footprintPct) || 0, 10, 100) / 100);
+  const footprintCols = Math.max(1, Math.min(cols, Math.floor(cols * footprintScale)));
+  const footprintRows = Math.max(1, Math.min(rows, Math.floor(rows * footprintScale)));
+  const footprintOffsetX = Math.floor((cols - footprintCols) / 2);
+  const footprintOffsetY = Math.floor((rows - footprintRows) / 2);
+  const gridWidthM = metresFromUnits(cols);
+  const gridDepthM = metresFromUnits(rows);
+  const footprintWidthM = metresFromUnits(footprintCols);
+  const footprintDepthM = metresFromUnits(footprintRows);
+  const footprintArea = footprintWidthM * footprintDepthM;
   return {
-    cols: Math.max(12, Math.round(widthM / GRID_SIZE_M)),
-    rows: Math.max(10, Math.round(depthM / GRID_SIZE_M)),
-    widthM,
-    depthM,
-    area
+    cols,
+    rows,
+    widthM: gridWidthM,
+    depthM: gridDepthM,
+    nominalWidthM: widthM,
+    nominalDepthM: depthM,
+    lotArea,
+    area: footprintArea,
+    footprintArea,
+    footprintCols,
+    footprintRows,
+    footprintOffsetX,
+    footprintOffsetY,
+    footprintWidthM,
+    footprintDepthM
   };
+}
+
+export function getBuildableBounds(dims) {
+  return {
+    x: dims.footprintOffsetX,
+    y: dims.footprintOffsetY,
+    width: dims.footprintCols,
+    height: dims.footprintRows
+  };
+}
+
+export function isInsideBuildableFootprint(moduleOrCell, dims) {
+  const bounds = getBuildableBounds(dims);
+  const width = moduleOrCell.width || 1;
+  const height = moduleOrCell.height || 1;
+  return moduleOrCell.x >= bounds.x
+    && moduleOrCell.y >= bounds.y
+    && moduleOrCell.x + width <= bounds.x + bounds.width
+    && moduleOrCell.y + height <= bounds.y + bounds.height;
 }
 
 export function moduleSize(type, rotated = false) {
@@ -385,7 +432,11 @@ export function findModuleAt(floor, x, y) {
 
 export function canPlaceModule(floor, candidate, dims) {
   if (candidate.x < 0 || candidate.y < 0 || candidate.x + candidate.width > dims.cols || candidate.y + candidate.height > dims.rows) {
-    return { ok: false, reason: "Module exceeds the selected floor plate." };
+    return { ok: false, reason: "Module exceeds the lot boundary." };
+  }
+  const type = getModuleType(candidate.typeId);
+  if (!type?.outsideFootprintAllowed && !isInsideBuildableFootprint(candidate, dims)) {
+    return { ok: false, reason: "Module must sit inside the selected buildable footprint." };
   }
   const existing = new Set();
   floor.modules
@@ -633,7 +684,7 @@ export function calculateMetrics(state) {
   const totalHeight = state.floors.length * (state.scenario.clearHeight + state.scenario.structureDepth);
   if (totalHeight > state.scenario.heightCap) warnings.push(`Height scenario exceeds cap: ${totalHeight.toFixed(1)}m stack against ${state.scenario.heightCap}m cap.`);
 
-  const availableAreaAllFloors = getFootprintArea(state.scenario) * state.floors.length;
+  const availableAreaAllFloors = dims.footprintArea * state.floors.length;
   if (totals.usedAreaM2 > availableAreaAllFloors) warnings.push("Used module area exceeds selected footprint scenario.");
 
   const railConnectedPct = totals.railRequired ? Math.round((totals.railConnected / totals.railRequired) * 100) : 100;
@@ -662,7 +713,7 @@ export function calculateMetrics(state) {
       autonomousScore,
       wellbeingScore,
       availableAreaAllFloors: round(availableAreaAllFloors, 1),
-      envelopeVolumeM3: round(getFootprintArea(state.scenario) * state.scenario.clearHeight * state.floors.length, 1),
+      envelopeVolumeM3: round(dims.footprintArea * state.scenario.clearHeight * state.floors.length, 1),
       totalHeight: round(totalHeight, 1)
     },
     warnings
@@ -684,8 +735,9 @@ export function createMarkdownExport(state) {
     `- Site note: ${state.scenario.siteNote || "No site note supplied"}`,
     `- Loading edge: ${state.scenario.loadingEdge || "street-edge"}`,
     `- Site scenario: ${state.scenario.siteArea}m2 abstract small-lot`,
-    `- Block dimensions: ${state.scenario.frontageM}m frontage x ${state.scenario.depthM}m depth (${state.scenario.useCustomDimensions ? "used for grid shape" : "recorded only"})`,
-    `- Footprint preset: ${state.scenario.footprintPct}% (${getFootprintArea(state.scenario).toFixed(1)}m2 per floor)`,
+    `- Lot shape: ${metrics.dims.nominalWidthM}m x ${metrics.dims.nominalDepthM}m (${metrics.dims.lotArea.toFixed(1)}m2 from dimensions)`,
+    `- Block dimensions: ${state.scenario.frontageM}m frontage x ${state.scenario.depthM}m depth (${state.scenario.useCustomDimensions ? "used as the lot shape" : "recorded only"})`,
+    `- Buildable footprint: ${state.scenario.footprintPct}% (${metrics.dims.footprintWidthM}m x ${metrics.dims.footprintDepthM}m, ${metrics.dims.footprintArea.toFixed(1)}m2 per floor)`,
     `- Floors: ${state.floors.length}`,
     `- Clear ceiling height: ${state.scenario.clearHeight}m`,
     `- Height cap: ${state.scenario.heightCap}m`,
@@ -757,19 +809,51 @@ export function importJson(json) {
 
 export function createSeedLayout() {
   let state = createInitialState();
-  const placements = [
-    [0, "loading", 1, 1], [0, "external-stair", 1, 7], [0, "elevator", 7, 7], [0, "robot-bay", 1, 15], [0, "plant", 25, 16],
-    [0, "rail", 7, 4], [0, "rail", 8, 4], [0, "rail", 9, 4], [0, "rail", 10, 4], [0, "rail", 11, 4], [0, "rail", 12, 4], [0, "rail", 13, 4], [0, "rail", 14, 4], [0, "rail", 15, 4], [0, "rail", 16, 4], [0, "rail", 17, 4], [0, "rail", 18, 4], [0, "switch", 19, 4],
-    [0, "rail", 20, 4], [0, "rail", 21, 4], [0, "rail", 22, 4], [0, "rail", 23, 4], [0, "rail", 24, 4], [0, "rail", 25, 4], [0, "rail", 26, 4], [0, "rail", 27, 4], [0, "rail", 28, 4], [0, "rail", 29, 4], [0, "rail", 30, 4], [0, "rail", 31, 4], [0, "rail", 32, 4],
-    [0, "rail", 19, 5], [0, "rail", 19, 6], [0, "rail", 19, 7], [0, "rail", 19, 8], [0, "rail", 19, 9], [0, "rail", 19, 10], [0, "rail", 19, 11], [0, "switch", 19, 12],
-    [0, "rail", 20, 10], [0, "rail", 21, 10], [0, "rail", 22, 10], [0, "rail", 23, 10],
-    [0, "rail", 19, 13], [0, "rail", 8, 13], [0, "rail", 9, 13], [0, "rail", 10, 13], [0, "rail", 11, 13], [0, "rail", 12, 13], [0, "rail", 13, 13], [0, "rail", 14, 13], [0, "rail", 15, 13], [0, "rail", 16, 13], [0, "rail", 17, 13], [0, "rail", 18, 13],
-    [0, "rail", 8, 12], [0, "rail", 9, 12], [0, "rail", 10, 12], [0, "rail", 11, 12], [0, "rail", 12, 12], [0, "rail", 13, 12], [0, "rail", 14, 12], [0, "rail", 15, 12], [0, "rail", 16, 12], [0, "rail", 17, 12], [0, "rail", 18, 12],
-    [0, "sleep", 8, 5], [0, "sleep", 13, 5], [0, "vacuum-toilet", 18, 5], [0, "sleep", 8, 14], [0, "sleep", 13, 14], [0, "shower", 21, 11], [0, "podcast", 24, 5], [0, "compute", 29, 5], [0, "concierge", 17, 15],
-    [1, "external-stair", 1, 7], [1, "elevator", 7, 7], [1, "plant", 25, 16],
-    [2, "external-stair", 1, 7], [2, "elevator", 7, 7], [2, "plant", 25, 16],
-    [3, "external-stair", 1, 7], [3, "elevator", 7, 7], [3, "plant", 25, 16]
-  ];
+  const dims = getGridDimensions(state.scenario);
+  const x0 = dims.footprintOffsetX;
+  const y0 = dims.footprintOffsetY;
+  const railY = y0 + 5;
+  const loadX = Math.max(x0 + dims.footprintCols - 4, dims.cols - 7);
+  const loadY = Math.max(0, y0);
+  const stairX = Math.max(0, x0 - 2);
+  const stairY = y0 + 7;
+  const liftX = x0 + 2;
+  const liftY = railY + 1;
+  const plantX = x0 + 12;
+  const plantY = y0 + 10;
+  const placements = [];
+
+  state.floors.forEach((_, floorIndex) => {
+    placements.push(
+      [floorIndex, "external-stair", stairX, stairY],
+      [floorIndex, "elevator", liftX, liftY],
+      [floorIndex, "plant", plantX, plantY],
+      [floorIndex, "service-shaft", liftX + 4, plantY],
+      [floorIndex, "sleep", x0 + 2, railY - 3],
+      [floorIndex, "sleep", x0 + 7, railY - 3],
+      [floorIndex, "sleep", x0 + 12, railY - 3],
+      [floorIndex, "podcast", x0 + 17, railY - 4],
+      [floorIndex, "compute", x0 + 22, railY - 4],
+      [floorIndex, "vacuum-toilet", x0 + 7, railY + 1],
+      [floorIndex, "wash", x0 + 10, railY + 1],
+      [floorIndex, "shower", x0 + 13, railY + 1],
+      [floorIndex, "sleep", x0 + 17, railY + 1],
+      [floorIndex, "sleep", x0 + 22, railY + 1]
+    );
+
+    for (let x = x0 + 1; x <= x0 + dims.footprintCols - 4; x += 1) placements.push([floorIndex, x % 9 === 0 ? "switch" : "rail", x, railY]);
+    for (let y = railY + 1; y <= plantY; y += 1) placements.push([floorIndex, "rail", plantX - 1, y]);
+    placements.push([floorIndex, "rail", liftX + 1, railY], [floorIndex, "rail", liftX + 2, railY]);
+  });
+
+  placements.push(
+    [0, "loading", loadX, loadY],
+    [0, "robot-bay", x0 + 27, railY + 1],
+    [0, "concierge", x0 + 28, railY - 4],
+    [0, "rail", loadX, loadY + 4],
+    [0, "rail", loadX, railY]
+  );
+
   placements.forEach(([floorIndex, typeId, x, y]) => {
     const result = placeModule(state, floorIndex, typeId, x, y, false);
     state = result.ok ? result.state : state;
