@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Sources and caveats for the Straddie Space Station Simulator.">
+    <title>Sources | Straddie Space Station Simulator</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+  </head>
+  <body data-page="sources">
+    <header class="site-header" data-site-header></header>
+    <main class="page-shell">
+      <section class="intro-band compact">
+        <p class="eyebrow">Source Trail</p>
+        <h1>Simulate Bravely, Claim Carefully</h1>
+        <p class="lede">This public repo keeps the live address abstract. It models a 425m2 Dunwich small-lot scenario as a space-station habitat, then leaves planning, fire, health, sanitation, robotics and insurance checks clearly marked as future work.</p>
+      </section>
+
+      <section class="card-grid source-grid">
+        <article class="info-card">
+          <span>Planning</span>
+          <h2>Redland City Plan</h2>
+          <p>Use current Redland City Plan documents for zoning, overlays, height, parking, assessment and local constraints before treating any layout as approvable.</p>
+          <a href="https://www.redland.qld.gov.au/Planning-building-and-development/Redland-City-Plan/Redland-City-Plan-documents" target="_blank" rel="noopener noreferrer">Open City Plan documents</a>
+        </article>
+        <article class="info-card">
+          <span>Capsules</span>
+          <h2>Japanese Capsule Hotel Pattern</h2>
+          <p>The simulator starts from bed-sized capsule thinking: minimal personal volume, shared wet cores, strong privacy and high-density operation.</p>
+          <a href="https://www.japan-experience.com/plan-your-trip/to-know/travelling-in-japan-a-comprehensive-guide/capsule-hotels-in-japan" target="_blank" rel="noopener noreferrer">Read capsule overview</a>
+        </article>
+        <article class="info-card">
+          <span>Local Deck</span>
+          <h2>Capsule Hotel Opportunities Notes</h2>
+          <p>The early deck is used as a module taxonomy reminder: sleeping capsules, office/media capsules, compute infrastructure, washroom capsules, linen, service and floor-plan patterns. Old prices are deliberately not treated as current cost data.</p>
+        </article>
+        <article class="info-card">
+          <span>Agents</span>
+          <h2>Smallville-Style Agent Runs</h2>
+          <p>Later simulations can run schedules, queues, water, energy, robot routing and guest behaviour with multi-agent patterns inspired by generative-agent town experiments.</p>
+          <a href="https://arstechnica.com/information-technology/2023/04/surprising-things-happen-when-you-put-25-ai-agents-together-in-an-rpg-town/" target="_blank" rel="noopener noreferrer">Read the agent-town article</a>
+        </article>
+        <article class="info-card">
+          <span>Site Reading</span>
+          <h2>Satellite Lag Warning</h2>
+          <p>The simulator assumes the current small-lot partition is the live scenario. Public imagery can be stale, especially around tree cover, fences, clearing and service access.</p>
+        </article>
+        <article class="info-card">
+          <span>Boundary</span>
+          <h2>Not An Approval Claim</h2>
+          <p>External fire stairs, vacuum toilets, robotic pod loading, ceiling rails and autonomous operation are treated as simulation modules first. They need separate legal, technical and safety review.</p>
+        </article>
+      </section>
+    </main>
+    <footer class="site-footer" data-site-footer></footer>
+    <button class="top-button" data-top-button type="button" aria-label="Back to top">Top</button>
+    <script type="module" src="assets/js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A visual simulator for a 425m2 Dunwich small-lot terrestrial space-station habitat.">
+    <title>Straddie Space Station Simulator</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+  </head>
+  <body data-page="simulator">
+    <header class="site-header" data-site-header></header>
+
+    <main class="sim-app">
+      <section class="command-bar" aria-label="Scenario controls">
+        <div class="brand-block">
+          <div class="orbital-mark" aria-hidden="true"></div>
+          <div>
+            <strong>Straddie</strong>
+            <span>Space Station Simulator</span>
+          </div>
+        </div>
+
+        <label class="wide-control">
+          <span>Scenario</span>
+          <input data-setting="scenarioName" type="text" value="Dunwich 425m2 corner-lot scenario">
+        </label>
+        <label class="wide-control">
+          <span>Site note</span>
+          <input data-setting="siteNote" type="text" value="Cleared and fenced small-lot partition; public imagery may lag current ground conditions. Exact address stays out of public copy.">
+        </label>
+        <label>
+          <span>Loading edge</span>
+          <select data-setting="loadingEdge">
+            <option value="street-edge" selected>Street edge</option>
+            <option value="short-edge">Short edge</option>
+            <option value="long-edge">Long edge</option>
+            <option value="rear-service">Rear service</option>
+          </select>
+        </label>
+        <label>
+          <span>Site</span>
+          <input data-setting="siteArea" type="number" min="50" step="5" value="425">
+          <em>m2</em>
+        </label>
+        <label>
+          <span>Frontage</span>
+          <input data-setting="frontageM" type="number" min="5" step="0.1" value="25.7">
+          <em>m</em>
+        </label>
+        <label>
+          <span>Depth</span>
+          <input data-setting="depthM" type="number" min="5" step="0.1" value="16.5">
+          <em>m</em>
+        </label>
+        <label class="toggle-label">
+          <span>Use block shape</span>
+          <input data-setting="useCustomDimensions" type="checkbox">
+        </label>
+        <label>
+          <span>Footprint</span>
+          <input data-setting="footprintPct" type="number" min="10" max="100" step="1" value="75" list="footprint-presets">
+          <datalist id="footprint-presets">
+            <option value="60"></option>
+            <option value="75"></option>
+            <option value="85"></option>
+          </datalist>
+        </label>
+        <label>
+          <span>Floors</span>
+          <select data-setting="floors">
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+            <option value="5">5</option>
+          </select>
+        </label>
+        <label>
+          <span>Ceiling</span>
+          <input data-setting="clearHeight" type="number" min="2.1" max="4" step="0.1" value="2.4">
+          <em>m</em>
+        </label>
+        <label>
+          <span>Height cap</span>
+          <input data-setting="heightCap" type="number" min="6" max="30" step="0.5" value="14">
+          <em>m</em>
+        </label>
+
+        <div class="command-actions">
+          <button class="icon-button" type="button" data-action="seed" title="Load seed layout">Seed</button>
+          <button class="icon-button" type="button" data-action="save" title="Save layout in this browser">Save</button>
+          <button class="icon-button" type="button" data-action="load" title="Load saved layout">Load</button>
+          <button class="icon-button" type="button" data-action="clear" title="Clear active floor">Clear</button>
+        </div>
+      </section>
+
+      <section class="intro-strip">
+        <div>
+          <h1>Design the habitat as a known volume.</h1>
+          <p>This is an abstract Dunwich small-lot scenario: fixed modules, robotic street-edge loading, floor/ceiling rails, external fire-stair placeholders, small internal lifts, separated waste streams and agent-readable exports. Change the site area, shape and footprint to test other blocks in seconds.</p>
+        </div>
+        <div class="mode-note">
+          <span>Boundary</span>
+          <strong>Simulation first. Approval later.</strong>
+        </div>
+      </section>
+
+      <section class="workbench">
+        <aside class="module-panel" aria-label="Module library">
+          <div class="panel-head">
+            <h2>Module Library</h2>
+            <button type="button" class="ghost-button" data-action="rotate-palette">Rotate: <span data-rotation-state>Off</span></button>
+          </div>
+          <div class="module-search">
+            <input type="search" data-module-filter placeholder="Search modules">
+          </div>
+          <div class="module-list" data-module-list></div>
+        </aside>
+
+        <section class="floor-editor" aria-label="Floor layout editor">
+          <div class="editor-head">
+            <div>
+              <p class="eyebrow">Floor Plan</p>
+              <h2><span data-active-floor-label>Floor 1</span> - <span data-grid-label>0.6m grid</span></h2>
+            </div>
+            <div class="floor-tabs" data-floor-tabs></div>
+          </div>
+
+          <div class="grid-frame">
+            <div class="axis axis-top" data-axis-top></div>
+            <div class="axis axis-left" data-axis-left></div>
+            <div class="floor-grid" data-floor-grid role="application" aria-label="Module placement grid"></div>
+          </div>
+
+          <div class="tool-rail">
+            <button type="button" data-action="delete-selected">Delete selected</button>
+            <button type="button" data-action="rotate-selected">Rotate selected</button>
+            <button type="button" data-action="duplicate-floor">Duplicate floor</button>
+            <button type="button" data-action="export-json">Export JSON</button>
+            <button type="button" data-action="export-md">Export Markdown</button>
+          </div>
+          <p class="status-line" data-status>Choose a module, then click the grid. Click an existing module to select it.</p>
+        </section>
+
+        <aside class="inspector-panel" aria-label="Habitat metrics">
+          <div class="panel-head">
+            <h2>Habitat Inspector</h2>
+            <span data-total-height>0m</span>
+          </div>
+          <div class="metric-stack" data-metric-stack></div>
+          <div class="warning-box">
+            <h3>Warnings</h3>
+            <ul data-warning-list></ul>
+          </div>
+        </aside>
+      </section>
+
+      <section id="export" class="export-section">
+        <div>
+          <p class="eyebrow">Agent Handoff</p>
+          <h2>Export the layout as JSON or Markdown.</h2>
+          <p>JSON restores the exact simulator state. Markdown gives agent teams the scenario, module totals, rail assumptions, habitat metrics and future simulation prompts.</p>
+        </div>
+        <textarea data-export-output spellcheck="false" aria-label="Export output"></textarea>
+      </section>
+    </main>
+
+    <footer class="site-footer" data-site-footer></footer>
+    <button class="top-button" data-top-button type="button" aria-label="Back to top">Top</button>
+    <script type="module" src="assets/js/app.js"></script>
+  </body>
+</html>
