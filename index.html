@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="A visual simulator for a 425m2 Dunwich small-lot terrestrial space-station habitat.">
     <title>Straddie Space Station Simulator</title>
-    <link rel="stylesheet" href="assets/css/styles.css?v=20260610-layout-overlap">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20260610-compact-controls">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
 </head>
@@ -14,83 +14,91 @@
 
     <main class="sim-app">
       <section class="command-bar" aria-label="Scenario controls">
-        <div class="brand-block">
-          <div class="orbital-mark" aria-hidden="true"></div>
-          <div>
-            <strong>Straddie</strong>
-            <span>Space Station Simulator</span>
+        <div class="command-home">
+          <div class="brand-block">
+            <div class="orbital-mark" aria-hidden="true"></div>
+            <div>
+              <strong>Straddie</strong>
+              <span>Space Station Simulator</span>
+            </div>
+          </div>
+          <div class="command-actions">
+            <button class="icon-button" type="button" data-action="seed" title="Load seed layout">Seed</button>
+            <button class="icon-button" type="button" data-action="save" title="Save layout in this browser">Save</button>
+            <button class="icon-button" type="button" data-action="load" title="Load saved layout">Load</button>
+            <button class="icon-button" type="button" data-action="clear" title="Clear active floor">Clear</button>
           </div>
         </div>
 
-        <label class="wide-control">
-          <span>Scenario</span>
-          <input data-setting="scenarioName" type="text" value="Dunwich 425m2 corner-lot scenario">
-        </label>
-        <label class="wide-control">
-          <span>Site note</span>
-          <input data-setting="siteNote" type="text" value="Cleared and fenced small-lot partition; public imagery may lag current ground conditions. Exact address stays out of public copy.">
-        </label>
-        <label>
-          <span>Loading edge</span>
-          <select data-setting="loadingEdge">
-            <option value="street-edge" selected>Street edge</option>
-            <option value="short-edge">Short edge</option>
-            <option value="long-edge">Long edge</option>
-            <option value="rear-service">Rear service</option>
-          </select>
-        </label>
-        <label>
-          <span>Site</span>
-          <input data-setting="siteArea" type="number" min="50" step="5" value="425">
-          <em>m2</em>
-        </label>
-        <label>
-          <span>Frontage</span>
-          <input data-setting="frontageM" type="number" min="5" step="0.1" value="25.7">
-          <em>m</em>
-        </label>
-        <label>
-          <span>Depth</span>
-          <input data-setting="depthM" type="number" min="5" step="0.1" value="16.5">
-          <em>m</em>
-        </label>
-        <label class="toggle-label">
-          <span>Use block shape</span>
-          <input data-setting="useCustomDimensions" type="checkbox">
-        </label>
-        <label>
-          <span>Footprint</span>
-          <input data-setting="footprintPct" type="number" min="10" max="100" step="1" value="75" list="footprint-presets">
-          <datalist id="footprint-presets">
-            <option value="60"></option>
-            <option value="75"></option>
-            <option value="85"></option>
-          </datalist>
-        </label>
-        <label>
-          <span>Floors</span>
-          <select data-setting="floors">
-            <option value="3">3</option>
-            <option value="4" selected>4</option>
-            <option value="5">5</option>
-          </select>
-        </label>
-        <label>
-          <span>Ceiling</span>
-          <input data-setting="clearHeight" type="number" min="2.1" max="4" step="0.1" value="2.4">
-          <em>m</em>
-        </label>
-        <label>
-          <span>Height cap</span>
-          <input data-setting="heightCap" type="number" min="6" max="30" step="0.5" value="14">
-          <em>m</em>
-        </label>
+        <div class="command-fields">
+          <div class="control-row story-controls">
+            <label>
+              <span>Scenario</span>
+              <input data-setting="scenarioName" type="text" value="Dunwich 425m2 corner-lot scenario">
+            </label>
+            <label>
+              <span>Site note</span>
+              <input data-setting="siteNote" type="text" value="Cleared and fenced small-lot partition; public imagery may lag current ground conditions. Exact address stays out of public copy.">
+            </label>
+            <label>
+              <span>Loading edge</span>
+              <select data-setting="loadingEdge">
+                <option value="street-edge" selected>Street edge</option>
+                <option value="short-edge">Short edge</option>
+                <option value="long-edge">Long edge</option>
+                <option value="rear-service">Rear service</option>
+              </select>
+            </label>
+          </div>
 
-        <div class="command-actions">
-          <button class="icon-button" type="button" data-action="seed" title="Load seed layout">Seed</button>
-          <button class="icon-button" type="button" data-action="save" title="Save layout in this browser">Save</button>
-          <button class="icon-button" type="button" data-action="load" title="Load saved layout">Load</button>
-          <button class="icon-button" type="button" data-action="clear" title="Clear active floor">Clear</button>
+          <div class="control-row geometry-controls">
+            <label>
+              <span>Site</span>
+              <input data-setting="siteArea" type="number" min="50" step="5" value="425">
+              <em>m2</em>
+            </label>
+            <label>
+              <span>Frontage</span>
+              <input data-setting="frontageM" type="number" min="5" step="0.1" value="25.7">
+              <em>m</em>
+            </label>
+            <label>
+              <span>Depth</span>
+              <input data-setting="depthM" type="number" min="5" step="0.1" value="16.5">
+              <em>m</em>
+            </label>
+            <label>
+              <span>Footprint</span>
+              <input data-setting="footprintPct" type="number" min="10" max="100" step="1" value="75" list="footprint-presets">
+              <datalist id="footprint-presets">
+                <option value="60"></option>
+                <option value="75"></option>
+                <option value="85"></option>
+              </datalist>
+            </label>
+            <label>
+              <span>Floors</span>
+              <select data-setting="floors">
+                <option value="3">3</option>
+                <option value="4" selected>4</option>
+                <option value="5">5</option>
+              </select>
+            </label>
+            <label>
+              <span>Ceiling</span>
+              <input data-setting="clearHeight" type="number" min="2.1" max="4" step="0.1" value="2.4">
+              <em>m</em>
+            </label>
+            <label>
+              <span>Height cap</span>
+              <input data-setting="heightCap" type="number" min="6" max="30" step="0.5" value="14">
+              <em>m</em>
+            </label>
+            <label class="toggle-label">
+              <span>Use block shape</span>
+              <input data-setting="useCustomDimensions" type="checkbox">
+            </label>
+          </div>
         </div>
       </section>
 
@@ -168,6 +176,6 @@
 
     <footer class="site-footer" data-site-footer></footer>
     <button class="top-button" data-top-button type="button" aria-label="Back to top">Top</button>
-    <script type="module" src="assets/js/app.js"></script>
+    <script type="module" src="assets/js/app.js?v=20260610-compact-controls"></script>
   </body>
 </html>

@@ -247,7 +247,7 @@ function renderGrid() {
   });
 
   const label = qs("[data-grid-label]");
-  if (label) label.textContent = `lot target ${state.scenario.siteArea}m2 (${dims.nominalWidthM.toFixed(1)}m x ${dims.nominalDepthM.toFixed(1)}m) / footprint ${dims.footprintArea.toFixed(1)}m2`;
+  if (label) label.textContent = `${state.scenario.siteArea}m2 lot / ${dims.footprintArea.toFixed(1)}m2 footprint`;
   const stats = qs("[data-plan-stats]");
   if (stats) {
     stats.innerHTML = `

@@ -127,22 +127,29 @@ button {
 }
 
 .command-bar {
-  align-items: end;
+  align-items: stretch;
   background: rgba(15, 31, 38, 0.88);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   display: grid;
-  gap: 0.65rem;
-  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  gap: 0.85rem;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
   padding: 14px;
+}
+
+.command-home {
+  align-content: space-between;
+  border-right: 1px solid var(--line);
+  display: grid;
+  gap: 0.8rem;
+  padding-right: 0.85rem;
 }
 
 .brand-block {
   align-items: center;
   display: flex;
   gap: 0.75rem;
-  grid-column: span 2;
   min-width: 0;
 }
 
@@ -170,12 +177,39 @@ button {
   text-transform: uppercase;
 }
 
+.command-fields,
+.control-row,
+.command-bar label,
+.calibration-row label,
+.basis-field {
+  min-width: 0;
+}
+
+.command-fields {
+  align-content: end;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.control-row {
+  align-items: end;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.story-controls {
+  grid-template-columns: minmax(190px, 1fr) minmax(260px, 1.15fr) minmax(132px, 0.48fr);
+}
+
+.geometry-controls {
+  grid-template-columns: repeat(8, minmax(76px, 1fr));
+}
+
 .command-bar label,
 .calibration-row label,
 .basis-field {
   display: grid;
   gap: 0.25rem;
-  min-width: 0;
 }
 
 .command-bar input,
@@ -189,7 +223,7 @@ button {
   border-radius: 7px;
   color: var(--ink);
   min-width: 0;
-  padding: 0.58rem 0.65rem;
+  padding: 0.5rem 0.6rem;
 }
 
 .wide-control {
@@ -198,12 +232,14 @@ button {
 }
 
 .toggle-label {
-  align-content: end;
+  align-items: end;
+  min-width: 78px;
 }
 
 .toggle-label input {
-  height: 22px;
-  width: 22px;
+  accent-color: var(--cyan);
+  height: 32px;
+  width: 32px;
 }
 
 .command-bar em,
@@ -223,7 +259,8 @@ button {
 
 .command-actions {
   align-self: end;
-  grid-column: span 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   min-width: 0;
 }
 
@@ -235,9 +272,9 @@ button {
   border: 1px solid var(--line-strong);
   border-radius: 7px;
   color: var(--ink);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 800;
-  padding: 0.6rem 0.75rem;
+  padding: 0.52rem 0.62rem;
   text-decoration: none;
 }
 
@@ -338,10 +375,17 @@ button {
 
 .panel-head,
 .editor-head {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
+  align-items: start;
+  display: grid;
   gap: 1rem;
+}
+
+.panel-head {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.editor-head {
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 h2,
@@ -350,8 +394,15 @@ p {
   margin-top: 0;
 }
 
-.panel-head h2,
+.panel-head h2 {
+  font-size: clamp(1.2rem, 1.6vw, 1.5rem);
+  line-height: 1.1;
+  margin: 0;
+}
+
 .editor-head h2 {
+  font-size: clamp(1.45rem, 2.2vw, 2.2rem);
+  line-height: 1.15;
   margin: 0;
 }
 
@@ -456,7 +507,14 @@ p {
   border-radius: 7px;
   color: var(--muted);
   font-family: var(--mono);
-  padding: 0.45rem 0.6rem;
+  height: 42px;
+  padding: 0;
+  width: 42px;
+}
+
+.floor-tabs {
+  flex-wrap: nowrap;
+  justify-content: end;
 }
 
 .floor-tabs button[data-active="true"] {
@@ -871,12 +929,37 @@ p {
 
 @media (max-width: 1180px) {
   .command-bar {
-    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    grid-template-columns: 1fr;
   }
 
-  .brand-block,
+  .command-home {
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    border-right: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-bottom: 0.85rem;
+    padding-right: 0;
+  }
+
   .command-actions {
-    grid-column: 1 / -1;
+    grid-template-columns: repeat(4, minmax(68px, 1fr));
+  }
+
+  .story-controls {
+    grid-template-columns: minmax(170px, 1fr) minmax(230px, 1.15fr) minmax(130px, 0.5fr);
+  }
+
+  .geometry-controls {
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  }
+
+  .editor-head {
+    grid-template-columns: 1fr;
+  }
+
+  .floor-tabs {
+    justify-content: start;
+    flex-wrap: wrap;
   }
 }
 
@@ -894,6 +977,19 @@ p {
   .export-section,
   .card-grid,
   .scenario-list {
+    grid-template-columns: 1fr;
+  }
+
+  .command-home {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .command-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .story-controls {
     grid-template-columns: 1fr;
   }
 
