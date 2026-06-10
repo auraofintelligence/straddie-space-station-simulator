@@ -27,6 +27,8 @@
 
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -38,6 +40,8 @@ body {
   font-family: var(--font);
   line-height: 1.5;
   margin: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 a {
@@ -119,6 +123,7 @@ button {
   margin: 0 auto;
   max-width: 1860px;
   padding: 22px;
+  width: 100%;
 }
 
 .command-bar {
@@ -129,7 +134,7 @@ button {
   box-shadow: var(--shadow);
   display: grid;
   gap: 0.65rem;
-  grid-template-columns: minmax(190px, 1.1fr) minmax(180px, 1fr) minmax(180px, 1fr) repeat(8, minmax(70px, 0.5fr)) auto;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
   padding: 14px;
 }
 
@@ -137,6 +142,8 @@ button {
   align-items: center;
   display: flex;
   gap: 0.75rem;
+  grid-column: span 2;
+  min-width: 0;
 }
 
 .brand-block strong,
@@ -168,6 +175,7 @@ button {
 .basis-field {
   display: grid;
   gap: 0.25rem;
+  min-width: 0;
 }
 
 .command-bar input,
@@ -185,7 +193,8 @@ button {
 }
 
 .wide-control {
-  min-width: 220px;
+  grid-column: span 2;
+  min-width: 0;
 }
 
 .toggle-label {
@@ -210,6 +219,12 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.command-actions {
+  align-self: end;
+  grid-column: span 2;
+  min-width: 0;
 }
 
 .icon-button,
@@ -288,6 +303,7 @@ button {
   gap: 16px;
   grid-template-columns: 280px minmax(760px, 1fr) 310px;
   margin-top: 14px;
+  min-width: 0;
 }
 
 .module-panel,
@@ -314,6 +330,10 @@ button {
 .floor-editor {
   min-width: 0;
   padding: 14px;
+}
+
+.workbench > * {
+  min-width: 0;
 }
 
 .panel-head,
@@ -834,7 +854,12 @@ p {
 
 @media (max-width: 1440px) {
   .workbench {
-    grid-template-columns: 260px minmax(600px, 1fr);
+    grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  }
+
+  .module-panel {
+    max-height: none;
+    position: static;
   }
 
   .inspector-panel {
@@ -846,7 +871,7 @@ p {
 
 @media (max-width: 1180px) {
   .command-bar {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
   }
 
   .brand-block,
